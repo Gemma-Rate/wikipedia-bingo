@@ -11,15 +11,20 @@ class Validation:
         self.page_text = None
         self.stripped_text = None
         self.title = page_title
+        self.raw_title = page_title
         self.token = None
 
-    def scrape_wiki(self):
+    def scrape_wiki(self, mode_choice=0):
         """Get text from Wikipedia page"""
 
         self.title = self.title.replace(' ', '_')
         # Add underscore for page search.
 
-        url = 'https://en.wikipedia.org/wiki/'+self.title
+        modes = ['https://en.wikipedia.org/wiki/',
+                 'https://simple.wikipedia.org/wiki/']
+        # Simple english and normal mode.
+
+        url = modes[mode_choice]+self.title
         web_data = un.urlopen(url)
         read_page = bs(web_data.read(), 'html.parser')
         text = read_page.get_text()
@@ -28,21 +33,12 @@ class Validation:
         self.page_text = text
 
     def process_wiki(self):
-        """Process wiki text to remove [] and {} and tokenise words"""
+        """Process wiki text to tokenise words"""
         stripped = self.page_text.replace('[edit]', '')
         # Get rid of random [edit].
 
         stripped = re.sub(r'\[(\d+)\]', '', stripped)
         # Get rid of reference numbers.
-        #m = re.search(r'(\d+).', stripped)
-        stripped = re.sub(r'\d.+(\w+)', '', stripped)
-        stripped = stripped.replace('Contents', '')
-        # Exclude contents.
-
-        #stripped =
-        # Exclude references.
-
-        # Exclude Main article: links.
 
         self.stripped_text = stripped
         tokens = nltk.word_tokenize(self.stripped_text)
