@@ -10,14 +10,17 @@ import pygame
 from pygame.locals import *
 import pygame_textinput
 
+from validate_numbers import Validation
+from word_generation import get_word_list, target_word
+
 # Create the constants (go ahead and experiment with different values)
-BOARDWIDTH = 4  # number of columns in the board
-BOARDHEIGHT = 4  # number of rows in the board
+BOARDWIDTH = 5  # number of columns in the board
+BOARDHEIGHT = 5  # number of rows in the board
 TILESIZE = 80
 TILE_WIDTH = 200
 TILE_HEIGHT = 80
-WINDOWWIDTH = 1200
-WINDOWHEIGHT = 480
+WINDOWWIDTH = 1600
+WINDOWHEIGHT = 600
 FPS = 30
 BLANK = None
 
@@ -46,7 +49,7 @@ DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
 
-ALL_WORDS = list('qwertyuiopasdfghjklzxcvbn'.upper())
+ALL_WORDS = get_word_list('no_stop_g2.txt')
 
 
 def main():
@@ -72,7 +75,7 @@ def main():
                                      WINDOWWIDTH - 120, 30)
 
     # Generate a new puzzle
-    board_words = get_starting_board()
+    board_words, board_ranges = get_starting_board()
 
     # Create list of red tiles
     board_counts = np.zeros((BOARDWIDTH, BOARDHEIGHT))
@@ -83,7 +86,7 @@ def main():
 
     # Draw the board
     message_array = None
-    draw_board(board_words, board_counts, textinput, message_array)
+    draw_board(board_words, board_counts, board_ranges, textinput, message_array)
     pygame.display.update()
 
     # Main game loop
@@ -117,10 +120,20 @@ def main():
                     terminate()
             else:
                 # parse all input "words"
-                words = list(user_input)
+                #words = user_input.split(' ')
+
+                # Get the wikipedia article
+                validation = Validation(user_input)
+                try:
+                    validation.scrape_wiki()
+                    validation.process_wiki()
+                    words = validation.token
+                except Exception:
+                    print('Article not found')
+                    words = []
 
                 # Remove any words not on the board
-                words = [word.upper() for word in words if word.upper() in board_words.flatten()]
+                words = [word.lower() for word in words if word.lower() in board_words.flatten()]
 
                 # Count the frequencies
                 counter = Counter(words)
@@ -128,7 +141,7 @@ def main():
 
                 message_array = []
                 for word in sorted(counter, key=lambda x: counter[x], reverse=True):
-                    x, y = tuple(np.argwhere(board_words == word.upper())[0])
+                    x, y = tuple(np.argwhere(board_words == word.lower())[0])
                     current_count = board_counts[x][y]
                     new_count = current_count + counter[word]
 
@@ -141,18 +154,20 @@ def main():
 
                     # Check if the counter has overflowed
                     new_word = None
+                    new_range = None
                     if new_count > 3:
                         new_count = 0
-                        new_word = get_new_word(board_words)
+                        new_word, new_range = get_new_word(board_words)
                         message_array.append('  OVERFLOW > {}'.format(new_word))
 
                     # Save the new count, new word (if needed) and message
                     board_counts[x][y] = new_count
                     if new_word:
                         board_words[x][y] = new_word
+                        board_ranges[x][y] = new_range
 
         # Draw the board
-        draw_board(board_words, board_counts, textinput, message_array)
+        draw_board(board_words, board_counts, board_ranges, textinput, message_array)
 
         # Check for exit
         check_for_quit()
@@ -162,7 +177,7 @@ def main():
 
         # exit if won
         if game_won(board_counts):
-            pygame.time.wait(1500)
+            pygame.time.wait(10000)
             terminate()
 
 
@@ -182,17 +197,33 @@ def check_for_quit():
 
 def get_starting_board():
     """Return a board data structure with tiles in the solved state."""
-    words = random.sample(ALL_WORDS, BOARDWIDTH*BOARDHEIGHT)
+    words = []
+    ranges = []
+    for i in range(BOARDWIDTH*BOARDHEIGHT):
+        word, val_range = get_new_word()
+        words.append(word)
+        ranges.append(val_range)
     board_words = np.array(words).reshape((BOARDWIDTH, BOARDHEIGHT))
-    return board_words
+    board_ranges = np.array(ranges).reshape((BOARDWIDTH, BOARDHEIGHT))
+    return board_words, board_ranges
 
 
-def get_new_word(board_words):
+def get_new_word(board_words = None):
     """Get an unused word from the list of all words."""
-    used_words = set(board_words.flatten())
-    all_words = set(ALL_WORDS)
-    unused_words = all_words - used_words
-    return random.choice(list(unused_words))
+    while True:
+
+        target = target_word(ALL_WORDS)
+        target.word_gen()
+        word = target.word.lower()
+        target.range_gen()
+        val_range = target.range
+
+        if board_words is None:
+            break
+        if word not in board_words.flatten():
+            break
+
+    return word, val_range
 
 
 def getLeftTopOfTile(tileX, tileY):
@@ -220,14 +251,15 @@ def makeText(text, color, bgcolor, top, left):
     return (textSurf, textRect)
 
 
-def draw_board(board_words, board_counts, textinput, message_array=None):
+def draw_board(board_words, board_counts, board_ranges, textinput, message_array=None):
     WINDOW.fill(BGCOLOR)
     # Draw the board
     for tilex in range(len(board_words)):
         for tiley in range(len(board_words[0])):
             word = board_words[tilex][tiley]
             count = board_counts[tilex][tiley]
-            if 0 < count:
+            val_range = board_ranges[tilex][tiley]
+            if 0 < count < 5:
                 colour = (255, 255 - count * 255 / 3, 255 - count * 255 / 3)
             else:
                 colour = GREEN
