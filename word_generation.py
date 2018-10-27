@@ -1,8 +1,7 @@
 import numpy.random as rn
 import nltk
 import pywikibot as pw
-from pywikibot import pagegenerators as pg
-
+import numpy as np
 
 
 def get_word_list(file_name):
@@ -51,4 +50,7 @@ class target_word:
             lower = lower*rn.randint(1, high=3)
         # Longer words less common, so have lower limit proportional to word size.
 
-        upper = int(1/word_len*10)*100
+        upper = lower+range_size
+        range = np.arange(lower, upper)
+
+        self.range = range
