@@ -145,7 +145,9 @@ class Game():
                     counter = Counter(words)
 
                     # Create the message for the top left
-                    self.message_array = [user_input + ':']
+                    if len(words) == 0:
+                        self.message_array.append('No valid words')
+
                     for word in sorted(counter, key=lambda x: counter[x], reverse=True):
                         x, y = tuple(np.argwhere(self.board_words == word.lower())[0])
                         current_count = self.board_counts[x][y]
