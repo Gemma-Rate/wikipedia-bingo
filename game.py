@@ -75,7 +75,7 @@ def main():
                                      WINDOWWIDTH - 120, 30)
 
     # Generate a new puzzle
-    board_words, board_ranges = get_starting_board()
+    board_words, board_limits = get_starting_board()
 
     # Create list of red tiles
     board_counts = np.zeros((BOARDWIDTH, BOARDHEIGHT))
@@ -86,7 +86,7 @@ def main():
 
     # Draw the board
     message_array = None
-    draw_board(board_words, board_counts, board_ranges, textinput, message_array)
+    draw_board(board_words, board_counts, board_limits, textinput, message_array)
     pygame.display.update()
 
     # Main game loop
@@ -139,23 +139,25 @@ def main():
                 counter = Counter(words)
                 #message_array = ['{} +{:.0f}'.format(k, j) for k, j in counts]
 
-                message_array = []
+                message_array = [user_input + ':']
                 for word in sorted(counter, key=lambda x: counter[x], reverse=True):
                     x, y = tuple(np.argwhere(board_words == word.lower())[0])
                     current_count = board_counts[x][y]
+                    limit = board_limits[x][y]
                     new_count = current_count + counter[word]
 
                     # Create the message array for the left hand courner
-                    message = '{} ({:.0f})+{:.0f} = {:.0f}'.format(word,
+                    message = '{} ({:.0f})+{:.0f} = {:.0f}/{:.0f}'.format(word,
                                                                    current_count,
                                                                    counter[word],
-                                                                   new_count)
+                                                                   new_count,
+                                                                   limit)
                     message_array.append(message)
 
                     # Check if the counter has overflowed
                     new_word = None
                     new_range = None
-                    if new_count > 3:
+                    if new_count >= limit:
                         new_count = 0
                         new_word, new_range = get_new_word(board_words)
                         message_array.append('  OVERFLOW > {}'.format(new_word))
@@ -164,10 +166,10 @@ def main():
                     board_counts[x][y] = new_count
                     if new_word:
                         board_words[x][y] = new_word
-                        board_ranges[x][y] = new_range
+                        board_limits[x][y] = new_range
 
         # Draw the board
-        draw_board(board_words, board_counts, board_ranges, textinput, message_array)
+        draw_board(board_words, board_counts, board_limits, textinput, message_array)
 
         # Check for exit
         check_for_quit()
@@ -200,12 +202,12 @@ def get_starting_board():
     words = []
     ranges = []
     for i in range(BOARDWIDTH*BOARDHEIGHT):
-        word, val_range = get_new_word()
+        word, limit = get_new_word()
         words.append(word)
-        ranges.append(val_range)
+        ranges.append(limit)
     board_words = np.array(words).reshape((BOARDWIDTH, BOARDHEIGHT))
-    board_ranges = np.array(ranges).reshape((BOARDWIDTH, BOARDHEIGHT))
-    return board_words, board_ranges
+    board_limits = np.array(ranges).reshape((BOARDWIDTH, BOARDHEIGHT))
+    return board_words, board_limits
 
 
 def get_new_word(board_words = None):
@@ -216,14 +218,14 @@ def get_new_word(board_words = None):
         target.word_gen()
         word = target.word.lower()
         target.range_gen()
-        val_range = target.range
+        limit = 7  # target.upper
 
         if board_words is None:
             break
         if word not in board_words.flatten():
             break
 
-    return word, val_range
+    return word, limit
 
 
 def getLeftTopOfTile(tileX, tileY):
@@ -251,19 +253,19 @@ def makeText(text, color, bgcolor, top, left):
     return (textSurf, textRect)
 
 
-def draw_board(board_words, board_counts, board_ranges, textinput, message_array=None):
+def draw_board(board_words, board_counts, board_limits, textinput, message_array=None):
     WINDOW.fill(BGCOLOR)
     # Draw the board
     for tilex in range(len(board_words)):
         for tiley in range(len(board_words[0])):
             word = board_words[tilex][tiley]
             count = board_counts[tilex][tiley]
-            val_range = board_ranges[tilex][tiley]
-            if 0 < count < 5:
-                colour = (255, 255 - count * 255 / 3, 255 - count * 255 / 3)
+            limit = board_limits[tilex][tiley]
+            if 0 < count < limit:
+                colour = (255, 255 - count * 255 / limit, 255 - count * 255 / limit)
             else:
                 colour = GREEN
-            draw_tile(tilex, tiley, word, count, colour)
+            draw_tile(tilex, tiley, word, count, limit, colour)
 
     left, top = getLeftTopOfTile(0, 0)
     width = BOARDWIDTH * TILE_WIDTH
@@ -290,10 +292,10 @@ def draw_board(board_words, board_counts, board_ranges, textinput, message_array
     WINDOW.blit(textinput.get_surface(), (5, WINDOWHEIGHT - 30))
 
     # Draw the quit button
-    WINDOW.blit(QUIT_SURF, QUIT_RECT)
+    #WINDOW.blit(QUIT_SURF, QUIT_RECT)
 
 
-def draw_tile(tilex, tiley, word, count, colour=TILECOLOR):
+def draw_tile(tilex, tiley, word, count, limit, colour=TILECOLOR):
     """draw a tile at board coordinates tilex and tiley, optionally a few
     pixels over (determined by adjx and adjy)"""
     left, top = getLeftTopOfTile(tilex, tiley)
@@ -304,9 +306,9 @@ def draw_tile(tilex, tiley, word, count, colour=TILECOLOR):
     textRect.center = (left + int(TILE_WIDTH / 2), top + int(TILE_HEIGHT / 2))
     WINDOW.blit(textSurf, textRect)
 
-    countSurf = BASICFONT.render('{:.0f}'.format(count), True, TEXTCOLOR)
+    countSurf = BASICFONT.render('{:.0f}/{:.0f}'.format(count, limit), True, TEXTCOLOR)
     countRect = countSurf.get_rect()
-    countRect.center = (left + int(TILE_WIDTH / 2) + 80, top + int(TILE_HEIGHT / 2) + 20)
+    countRect.center = (left + int(TILE_WIDTH / 2) + 75, top + int(TILE_HEIGHT / 2) + 20)
     WINDOW.blit(countSurf, countRect)
 
 
