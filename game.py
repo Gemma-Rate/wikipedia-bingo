@@ -123,6 +123,9 @@ class Game():
                     if command in ['q', 'quit']:
                         self.terminate()
                 else:
+                    # Put the title in the top left
+                    self.message_array = [user_input + ':']
+
                     # Get the wikipedia article
                     validation = Validation(user_input)
                     try:
@@ -130,7 +133,7 @@ class Game():
                         validation.process_wiki()
                         words = validation.token
                     except Exception:
-                        print('Article not found')
+                        self.message_array.append('Article not found')
                         words = []
 
                     # Remove any words not on the board
