@@ -6,10 +6,8 @@ import nltk
 class Validation:
     """Validate word lengths"""
 
-    def __init__(self, page_title, word, range):
+    def __init__(self, page_title):
         """Initialise the parameters"""
-        self.word = word
-        self.range = range
         self.page_text = None
         self.stripped_text = None
         self.title = page_title
@@ -41,8 +39,7 @@ class Validation:
         stripped = stripped.replace('Contents', '')
         # Exclude contents.
 
-        #stripped = re.sub(r'\d.+(\w+)', '', stripped)
-        #stripped = self.page_text.replace('Contents', '')
+        #stripped =
         # Exclude references.
 
         # Exclude Main article: links.
