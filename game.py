@@ -1,17 +1,20 @@
-# The main game window
+"""Wikipedia Bingo code"""
 
-import random
 import sys
-import numpy as np
-
 from collections import Counter
 
+import numpy as np
+
+
 import pygame
-from pygame.locals import *
+import pygame.locals as loc
+
 from pygame_textinput import TextInput
 
 from validate_numbers import Validation
-from word_generation import get_word_list, TargetWord
+
+from word_generation import TargetWord, get_word_list
+
 
 # Create the constants (go ahead and experiment with different values)
 BOARDWIDTH = 5  # number of columns in the board
@@ -103,7 +106,7 @@ class Game():
 
             # Check clicks
             for event in events:
-                if event.type == MOUSEBUTTONUP:
+                if event.type == loc.MOUSEBUTTONUP:
                     # check if the user clicked on an option button
                     for button_name in self.buttons:
                         button = self.buttons[button_name]
@@ -184,33 +187,29 @@ class Game():
                 pygame.time.wait(10000)
                 self.terminate()
 
-
     def terminate(self):
         pygame.quit()
         sys.exit()
 
-
     def check_for_quit(self, events):
         for event in events:
-            if event.type == QUIT:
+            if event.type == loc.QUIT:
                 # terminate if any QUIT events are present
                 self.terminate()
-            if event.type == KEYUP and event.key == K_ESCAPE:
+            if event.type == loc.KEYUP and event.key == loc.K_ESCAPE:
                 # terminate if the KEYUP event was for the Esc key
                 self.terminate()
-
 
     def get_starting_board(self):
         """Return a board data structure with tiles in the solved state."""
         words = []
         ranges = []
-        for i in range(BOARDWIDTH*BOARDHEIGHT):
+        for i in range(BOARDWIDTH * BOARDHEIGHT):
             word, limit = self.get_new_word()
             words.append(word)
             ranges.append(limit)
         self.board_words = np.array(words).reshape((BOARDWIDTH, BOARDHEIGHT))
         self.board_limits = np.array(ranges).reshape((BOARDWIDTH, BOARDHEIGHT))
-
 
     def get_new_word(self):
         """Get an unused word from the list of all words."""
@@ -224,17 +223,15 @@ class Game():
             try:
                 if word not in self.board_words.flatten():
                     break
-            except:
+            except Exception:
                 break
 
         return word, limit
-
 
     def get_tile_courner(self, tileX, tileY):
         left = XMARGIN + (tileX * TILE_WIDTH) + (tileX - 1)
         top = YMARGIN + (tileY * TILE_HEIGHT) + (tileY - 1)
         return (left, top)
-
 
     def draw_board(self):
         self.window.fill(BGCOLOR)
@@ -258,17 +255,21 @@ class Game():
         # Draw the message
         if self.message_array:
             for i, msg in enumerate(self.message_array):
-                textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5 + 20*i)
+                textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5 + 20 * i)
                 self.window.blit(textSurf, textRect)
 
         # Draw the winning message if you've won
         if self.game_won():
-            textSurf, textRect = make_text('!! WINNER !!', MESSAGECOLOR, BGCOLOR, WINDOWWIDTH - 650, 5)
+            textSurf, textRect = make_text('!! WINNER !!',
+                                           MESSAGECOLOR, BGCOLOR,
+                                           WINDOWWIDTH - 650, 5)
             self.window.blit(textSurf, textRect)
 
         # Draw the instructions
         instruct = 'type a word, type \quit to exit:'
-        instructSurf, instructRect = make_text(instruct, MESSAGECOLOR, BGCOLOR, 5, WINDOWHEIGHT - 60)
+        instructSurf, instructRect = make_text(instruct,
+                                               MESSAGECOLOR, BGCOLOR,
+                                               5, WINDOWHEIGHT - 60)
         self.window.blit(instructSurf, instructRect)
 
         # Draw the text box
@@ -281,7 +282,6 @@ class Game():
 
         # Update the dipslay
         pygame.display.update()
-
 
     def draw_tile(self, tilex, tiley, word, count, limit, colour=TILECOLOR):
         """draw a tile at board coordinates tilex and tiley, optionally a few
@@ -298,7 +298,6 @@ class Game():
         countRect = countSurf.get_rect()
         countRect.center = (left + int(TILE_WIDTH / 2) + 75, top + int(TILE_HEIGHT / 2) + 20)
         self.window.blit(countSurf, countRect)
-
 
     def game_won(self):
         """Determine if anyone has won the game."""
