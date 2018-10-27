@@ -11,7 +11,7 @@ from pygame.locals import *
 import pygame_textinput
 
 from validate_numbers import Validation
-from word_generation import get_word_list, target_word
+from word_generation import get_word_list, TargetWord
 
 # Create the constants (go ahead and experiment with different values)
 BOARDWIDTH = 5  # number of columns in the board
@@ -214,7 +214,7 @@ def get_new_word(board_words = None):
     """Get an unused word from the list of all words."""
     while True:
 
-        target = target_word(ALL_WORDS)
+        target = TargetWord(ALL_WORDS)
         target.word_gen()
         word = target.word.lower()
         target.range_gen()
