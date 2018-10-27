@@ -1,6 +1,4 @@
 import numpy.random as rn
-import nltk
-import pywikibot as pw
 import numpy as np
 
 
@@ -13,7 +11,7 @@ def get_word_list(file_name):
 
     return words_list
 
-class target_word:
+class TargetWord:
     """
     Generate a target word and score range.
     """
@@ -21,7 +19,7 @@ class target_word:
     def __init__(self, word_list):
         """Initialise the parameters"""
         self.word = None
-        self.range = None
+        self.upper = None
         self.word_list = word_list
 
     def word_gen(self):
@@ -30,27 +28,12 @@ class target_word:
         selected_int = rn.randint(0, high=len(self.word_list)+1)
         selected_word = self.word_list[selected_int]
 
-        if selected_word[-1] == 's':
-            selected_word = selected_word[:-1]
-            # Discard plurals.
-
         self.word = selected_word
 
 
-    def range_gen(self):
+    def range_gen(self, mode=0):
         """Generate acceptable range for word"""
+        difficulty = [7, 5, 3]
+        # First = easy, second = medium, third = hard.
 
-        word_len = len(self.word)
-        # Adapt range based on length of word.
-        range_size = rn.randint(5, high=30)
-        # Range interval size.
-
-        lower = int(1/word_len*10)
-        if 1/word_len>0.3:
-            lower = lower*rn.randint(1, high=3)
-        # Longer words less common, so have lower limit proportional to word size.
-
-        upper = lower+range_size
-        range = np.arange(lower, upper)
-
-        self.range = range
+        self.upper = difficulty[mode]
