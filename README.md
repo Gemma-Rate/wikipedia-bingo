@@ -1,6 +1,7 @@
 # Welcome to Wikipedia Bingo
-## *The excitement of Wikipedia and the trepidations of Bingo combined into one game!*
+---
 
+## *The excitement of Wikipedia and the trepidations of Bingo combined into one game!*
 ### Goal 
 Find all the words in a column or a row to get Bingo! and win the game!
 
