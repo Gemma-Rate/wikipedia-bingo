@@ -4,7 +4,7 @@ import sys
 from collections import Counter
 
 import numpy as np
-
+import pandas as pd
 
 import pygame
 import pygame.locals as loc
@@ -248,6 +248,12 @@ class Game(object):
         # Create the message array (starts blank)
         self.message_array = None
 
+        # Initial score.
+        self.score = 0
+
+    def run(self):
+        """Run the game until it quits."""
+
         # Draw the initial board
         self.draw_main_screen()
 
@@ -288,9 +294,13 @@ class Game(object):
                         validation.scrape_wiki()
                         validation.process_wiki()
                         words = validation.token
+                        self.score += 1
+                        print(self.score)
                     except Exception:
                         self.message_array.append('Article not found')
                         words = []
+                        self.score += 1
+                        print(self.score)
 
                     # Remove any words not on the board
                     words = [word.lower()
@@ -375,6 +385,16 @@ class Game(object):
 
         # Draw the winning message if you've won
         if self.game_won():
+
+            name = 'tst' # Put input from user here!
+            new_win = pd.DataFrame(columns=['score', 'name'])
+            new_win.loc[0] = [self.score, name]
+            leaderboard = pd.read_csv('leaderboard.csv')
+            new_leaderboard = pd.concat([leaderboard, new_win])
+            new_leaderboard = new_leaderboard.sort_values('score')
+            new_leaderboard.to_csv('leaderboard.csv', index=False)
+            # Update the leaderboard.
+
             textSurf, textRect = make_text('!! WINNER !!',
                                            MESSAGECOLOR, BGCOLOR,
                                            WINDOWWIDTH / 2 - 75, 5)
