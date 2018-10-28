@@ -390,10 +390,15 @@ class Game(object):
         height = self.board_size * TILE_HEIGHT
         pygame.draw.rect(self.window, BORDERCOLOR, (left - 5, top - 5, width + 11, height + 11), 4)
 
+        # Draw the score
+        msg = 'SCORE: {:.0f}'.format(self.score)
+        surf, rect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5)
+        self.window.blit(surf, rect)
+
         # Draw the message
         if self.message_array:
             for i, msg in enumerate(self.message_array):
-                textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5 + 20 * i)
+                textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 35 + 20 * i)
                 self.window.blit(textSurf, textRect)
 
         # Draw the winning message if you've won
