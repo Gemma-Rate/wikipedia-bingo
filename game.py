@@ -21,7 +21,7 @@ BOARDSIZE = 5
 TILESIZE = 80
 TILE_WIDTH = 200
 TILE_HEIGHT = 80
-WINDOWWIDTH = 1900
+WINDOWWIDTH = 1920
 WINDOWHEIGHT = 800
 FPS = 30
 BLANK = None
@@ -241,11 +241,15 @@ class Game(object):
         """Create the main screen."""
         self.loop_stage = True
 
+        # Default user name
+        self.name = None
+
         # Generate a new puzzle
         self.get_starting_board()
 
         # Create list of red tiles
         self.board_counts = np.zeros((self.board_size, self.board_size))
+        self.board_new = np.zeros((self.board_size, self.board_size))
 
         # Quit button
         self.buttons = {}
@@ -299,60 +303,83 @@ class Game(object):
                     # Put the title in the top left
                     self.message_array = [user_input + ':']
 
-                    # Get the wikipedia article
-                    validation = Validation(user_input)
-                    try:
-                        validation.scrape_wiki()
-                        validation.process_wiki()
-                        words = validation.token
-                        self.score += 1
-                        print(self.score)
-                    except Exception:
-                        self.message_array.append('Article not found')
-                        words = []
-                        self.score += 1
-                        print(self.score)
+                    if not self.game_won():
+                        # Reset the new word counter
+                        self.board_new = np.zeros((self.board_size, self.board_size))
 
-                    # Remove any words not on the board
-                    words = [word.lower()
-                             for word in words
-                             if word.lower() in self.board_words.flatten()]
+                        # Get the wikipedia article
+                        validation = Validation(user_input)
+                        try:
+                            validation.scrape_wiki()
+                            validation.process_wiki()
+                            words = validation.token
+                            self.score += 1
+                            print(self.score)
+                        except Exception:
+                            self.message_array.append('Article not found')
+                            words = []
+                            self.score += 1
+                            print(self.score)
 
-                    # Count the frequencies
-                    counter = Counter(words)
+                        # Remove any words not on the board
+                        words = [word.lower()
+                                 for word in words
+                                 if word.lower() in self.board_words.flatten()]
 
-                    # Create the message for the top left
-                    if len(words) == 0:
-                        self.message_array.append('No valid words')
+                        # Count the frequencies
+                        counter = Counter(words)
 
-                    for word in sorted(counter, key=lambda x: counter[x], reverse=True):
-                        x, y = tuple(np.argwhere(self.board_words == word.lower())[0])
-                        current_count = self.board_counts[x][y]
-                        limit = self.board_limits[x][y]
-                        new_count = current_count + counter[word]
+                        # Create the message for the top left
+                        if len(words) == 0:
+                            self.message_array.append('No valid words')
 
-                        # Create the message array for the left hand courner
-                        message = '{} ({:.0f})+{:.0f} = {:.0f}/{:.0f}'.format(word,
-                                                                              current_count,
-                                                                              counter[word],
-                                                                              new_count,
-                                                                              limit)
-                        self.message_array.append(message)
+                        for word in sorted(counter, key=lambda x: counter[x], reverse=True):
+                            x, y = tuple(np.argwhere(self.board_words == word.lower())[0])
+                            current_count = self.board_counts[x][y]
+                            limit = self.board_limits[x][y]
+                            new_count = current_count + counter[word]
 
-                        # Check if the counter has overflowed
-                        new_word = None
-                        new_range = None
-                        if new_count >= limit:
-                            new_count = 0
-                            new_word, new_range = self.get_new_word()
-                            self.message_array.append('  OVERFLOW > {}'.format(new_word))
+                            # Create the message array for the left hand courner
+                            message = '{} ({:.0f})+{:.0f} = {:.0f}/{:.0f}'.format(word,
+                                                                                  current_count,
+                                                                                  counter[word],
+                                                                                  new_count,
+                                                                                  limit)
+                            self.message_array.append(message)
 
-                        # Save the new count, new word (if needed) and message
-                        self.board_counts[x][y] = new_count
-                        if new_word:
-                            print(new_word)
-                            self.board_words[x][y] = new_word
-                            self.board_limits[x][y] = new_range
+                            # Check if the counter has overflowed
+                            new_word = None
+                            new_range = None
+                            if new_count >= limit:
+                                new_count = 0
+                                new_word, new_range = self.get_new_word()
+                                self.message_array.append('  OVERFLOW > {}'.format(new_word))
+
+                            # Save the new count, new word (if needed) and message
+                            self.board_counts[x][y] = new_count
+                            if new_word:
+                                print(new_word)
+                                self.board_words[x][y] = new_word
+                                self.board_limits[x][y] = new_range
+                                self.board_new[x][y] = 1
+                    else:
+                        # You win!
+                        if not self.name and len(user_input) > 0:
+                            self.name = user_input
+                            print(self.name)
+
+                            # Update the leaderboard.
+                            name = 'tst'  # Put input from user here!
+                            new_win = pd.DataFrame(columns=['score', 'name'])
+
+                            self.scoring_algorithm()
+                            new_win.loc[0] = [self.final_score, name]
+                            leaderboard = pd.read_csv('leaderboard.csv')
+                            new_leaderboard = pd.concat([leaderboard, new_win])
+                            new_leaderboard = new_leaderboard.sort_values('score', ascending=False)
+                            new_leaderboard.to_csv('leaderboard.csv', index=False)
+
+                            return
 
             # Check for exit
             self.check_for_quit(events)
@@ -363,23 +390,6 @@ class Game(object):
             # Tick the FPS clock
             self.clock.tick(FPS)
 
-            # Exit if won
-            #if self.game_won():
-            #    pygame.time.wait(5000)
-            #    return
-
-        # Game finished
-        # Update the leaderboard.
-        name = 'tst'  # Put input from user here!
-        new_win = pd.DataFrame(columns=['score', 'name'])
-
-        self.scoring_algorithm()
-        new_win.loc[0] = [self.final_score, name]
-        leaderboard = pd.read_csv('leaderboard.csv')
-        new_leaderboard = pd.concat([leaderboard, new_win])
-        new_leaderboard = new_leaderboard.sort_values('score', ascending=False)
-        new_leaderboard.to_csv('leaderboard.csv', index=False)
-
     def draw_main_screen(self):
         """Draw the main screen."""
         self.window.fill(BGCOLOR)
@@ -387,23 +397,37 @@ class Game(object):
         for tilex in range(len(self.board_words)):
             for tiley in range(len(self.board_words[0])):
                 word = self.board_words[tilex][tiley]
+
+                # Change the BG colour based on the count
                 count = self.board_counts[tilex][tiley]
                 limit = self.board_limits[tilex][tiley]
                 if 0 < count < limit:
-                    colour = (255, 255 - count * 255 / limit, 255 - count * 255 / limit)
+                    bgcolour = (255, 255 - count * 255 / limit, 255 - count * 255 / limit)
                 else:
-                    colour = GREEN
-                self.draw_tile(tilex, tiley, word, count, limit, colour)
+                    bgcolour = GREEN
+
+                # Change the text colour if it's new
+                new = self.board_new[tilex][tiley]
+                if new:
+                    bgcolour = (60, 185, 100)
+
+                # Draw the tile
+                self.draw_tile(tilex, tiley, word, count, limit, TEXTCOLOR, bgcolour)
 
         left, top = self.get_tile_courner(0, 0)
         width = self.board_size * TILE_WIDTH
         height = self.board_size * TILE_HEIGHT
         pygame.draw.rect(self.window, BORDERCOLOR, (left - 5, top - 5, width + 11, height + 11), 4)
 
+        # Draw the score
+        msg = 'SCORE: {:.0f}'.format(self.score)
+        surf, rect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5)
+        self.window.blit(surf, rect)
+
         # Draw the message
         if self.message_array:
             for i, msg in enumerate(self.message_array):
-                textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5 + 20 * i)
+                textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 35 + 20 * i)
                 self.window.blit(textSurf, textRect)
 
         # Draw the winning message if you've won
@@ -415,9 +439,14 @@ class Game(object):
             self.window.blit(textSurf, textRect)
 
         # Draw the instructions
-        instruct = 'Enter the name of a Wikipedia article:'
+        if not self.game_won():
+            instruct = 'Enter the name of a Wikipedia article:'
+            color = MESSAGECOLOR
+        else:
+            instruct = 'Enter your name to add to the leaderboard:'
+            color = (255, 50, 50)
         instructSurf, instructRect = make_text(instruct,
-                                               MESSAGECOLOR, BGCOLOR,
+                                               color, BGCOLOR,
                                                5, WINDOWHEIGHT - 60)
         self.window.blit(instructSurf, instructRect)
 
@@ -512,20 +541,22 @@ class Game(object):
         top = ymargin + (tiley * TILE_HEIGHT) + (tiley - 1)
         return (left, top)
 
-    def draw_tile(self, tilex, tiley, word, count, limit, colour=TILECOLOR):
+    def draw_tile(self, tilex, tiley, word, count, limit, txtcolour=TEXTCOLOR, bgcolour=TILECOLOR):
         """Draw a tile at board coordinates tilex and tiley."""
         left, top = self.get_tile_courner(tilex, tiley)
-        pygame.draw.rect(self.window, colour, (left, top, TILE_WIDTH, TILE_HEIGHT))
+        pygame.draw.rect(self.window, bgcolour, (left, top, TILE_WIDTH, TILE_HEIGHT))
 
-        text_surf = BASICFONT.render(str(word), True, TEXTCOLOR)
-        text_rect = text_surf.get_rect()
-        text_rect.center = (left + int(TILE_WIDTH / 2), top + int(TILE_HEIGHT / 2))
-        self.window.blit(text_surf, text_rect)
+        surf = BASICFONT.render(str(word), True, txtcolour)
+        rect = surf.get_rect()
+        rect.center = (left + int(TILE_WIDTH / 2), top + int(TILE_HEIGHT / 2))
+        self.window.blit(surf, rect)
 
-        count_surf = BASICFONT.render('{:.0f}/{:.0f}'.format(count, limit), True, TEXTCOLOR)
-        count_rect = count_surf.get_rect()
-        count_rect.center = (left + int(TILE_WIDTH / 2) + 75, top + int(TILE_HEIGHT / 2) + 20)
-        self.window.blit(count_surf, count_rect)
+        txt = '{:.0f}/{:.0f}'.format(count, limit)
+        # txt = '{}{}'.format('-' * int(count), '*' * int(limit - count))
+        surf = BASICFONT.render(txt, True, txtcolour)
+        rect = surf.get_rect()
+        rect.center = (left + int(TILE_WIDTH / 2) + 75, top + int(TILE_HEIGHT / 2) + 20)
+        self.window.blit(surf, rect)
 
     def game_won(self):
         """Determine if anyone has won the game."""
