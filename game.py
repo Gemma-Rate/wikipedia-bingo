@@ -474,7 +474,7 @@ class Game(object):
             instruct = 'Enter the name of a Wikipedia article:'
             color = MESSAGECOLOR
         else:
-            instruct = 'Enter your name to add to the leaderboard:'
+            instruct = 'Enter your name to add to the leaderboard (MAX 3 LETTERS):'
             color = (255, 50, 50)
         instructSurf, instructRect = make_text(instruct,
                                                color, BGCOLOR,
