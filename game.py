@@ -413,13 +413,11 @@ class Game(object):
         if not self.game_won():
             instruct = 'Enter the name of a Wikipedia article:'
             color = MESSAGECOLOR
-            bgcolor = BGCOLOR
         else:
             instruct = 'Enter your name to add to the leaderboard:'
-            color = WHITE
-            bgcolor = (255, 0, 0)
+            color = (255, 50, 50)
         instructSurf, instructRect = make_text(instruct,
-                                               color, bgcolor,
+                                               color, BGCOLOR,
                                                5, WINDOWHEIGHT - 60)
         self.window.blit(instructSurf, instructRect)
 
