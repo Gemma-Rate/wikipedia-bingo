@@ -394,7 +394,7 @@ class Game(object):
                 # Change the text colour if it's new
                 new = self.board_new[tilex][tiley]
                 if new:
-                    bgcolour = (50, 150, 80)
+                    bgcolour = (60, 185, 100)
 
                 # Draw the tile
                 self.draw_tile(tilex, tiley, word, count, limit, TEXTCOLOR, bgcolour)
