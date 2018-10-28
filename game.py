@@ -222,6 +222,18 @@ class Game(object):
             else:
                 self.window.blit(button.surface, button.rect)
 
+        data, testnames = np.array([1,2, 3]), ['jam', 'lia', 'rob']
+        self.scoreboard = pd.DataFrame({'score': data, 'name': testnames})
+
+        if all(self.scoreboard.index):
+            strings = self.scoreboard['name'].values
+            scores = self.scoreboard['score'].values
+            for i, (na, sc) in enumerate(zip(strings, scores)):
+                msg = na+str(sc)
+                print(msg)
+                textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5 + 20 * i)
+                self.window.blit(textSurf, textRect)
+
         # Update the dipslay
         pygame.display.update()
 
@@ -357,11 +369,14 @@ class Game(object):
                             print(self.name)
 
                             # Update the leaderboard.
+                            name = 'tst'  # Put input from user here!
                             new_win = pd.DataFrame(columns=['score', 'name'])
-                            new_win.loc[0] = [self.score, self.name]
+
+                            self.scoring_algorithm()
+                            new_win.loc[0] = [self.final_score, name]
                             leaderboard = pd.read_csv('leaderboard.csv')
                             new_leaderboard = pd.concat([leaderboard, new_win])
-                            new_leaderboard = new_leaderboard.sort_values('score')
+                            new_leaderboard = new_leaderboard.sort_values('score', ascending=False)
                             new_leaderboard.to_csv('leaderboard.csv', index=False)
 
                             return
@@ -558,6 +573,37 @@ class Game(object):
                 won = True
 
         return won
+
+    def scoring_algorithm(self):
+        """
+        Scores a player's performance
+
+        Parameters
+        ---------
+        N : int
+            number of wiki articles used to win
+        mode : int
+            Either 3, 5 or 7 for Easy, Medium and Hard
+        grid : int
+            Either 3, 5 or 7 for size of grid 3by3, 5by5 and 7by7
+        """
+
+        self.final_score = 0
+        if self.board_size == 3:
+            self.final_score += 2000
+        elif self.board_size == 5:
+            self.final_score += 4000
+        elif self.board_size == 7:
+            self.final_score += 6000
+
+        if self.limit == 3:
+            self.final_score += 4000
+        elif self.limit == 5:
+            self.final_score += 6000
+        elif self.limit == 7:
+            self.final_score += 8000
+
+        self.final_score = int(self.final_score / self.score)
 
 
 def main():
