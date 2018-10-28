@@ -73,6 +73,7 @@ class Game(object):
         pygame.display.set_caption('Unnamed Wiki Bingo game (not WikiBingo)')
 
         # Default game options (changed on start screen)
+        self.limit = 5
         self.board_size = 5
 
     def run(self):
@@ -107,33 +108,61 @@ class Game(object):
                                       WINDOWWIDTH / 2 + 50, WINDOWHEIGHT - 100)
         self.buttons['quit'].action = self.terminate
 
-        # Dificulty
+        # Difficulty
+        self.buttons['limit3'] = Button('Hard',
+                                        TEXTCOLOR, TILECOLOR,
+                                        WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 300)
+        self.buttons['limit3'].action = self.set_limit_to_3
+        self.buttons['limit3_sel'] = Button('Hard',
+                                            TEXTCOLOR, WHITE,
+                                            WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 300)
+        self.buttons['limit3_sel'].action = self.set_limit_to_3
+
+        self.buttons['limit5'] = Button('Medium',
+                                        TEXTCOLOR, TILECOLOR,
+                                        WINDOWWIDTH / 2, WINDOWHEIGHT - 300)
+        self.buttons['limit5'].action = self.set_limit_to_5
+        self.buttons['limit5_sel'] = Button('Medium',
+                                            TEXTCOLOR, WHITE,
+                                            WINDOWWIDTH / 2, WINDOWHEIGHT - 300)
+        self.buttons['limit5_sel'].action = self.set_limit_to_5
+
+        self.buttons['limit7'] = Button('Easy',
+                                        TEXTCOLOR, TILECOLOR,
+                                        WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 300)
+        self.buttons['limit7'].action = self.set_limit_to_7
+        self.buttons['limit7_sel'] = Button('Easy',
+                                            TEXTCOLOR, WHITE,
+                                            WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 300)
+        self.buttons['limit7_sel'].action = self.set_limit_to_7
+
+        # Board size
         self.buttons['3x3'] = Button('3x3',
                                      TEXTCOLOR, TILECOLOR,
                                      WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 200)
         self.buttons['3x3'].action = self.set_board_size_to_3x3
-        self.buttons['3x3_selected'] = Button('3x3',
-                                              TEXTCOLOR, WHITE,
-                                              WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 200)
-        self.buttons['3x3_selected'].action = self.set_board_size_to_3x3
+        self.buttons['3x3_sel'] = Button('3x3',
+                                         TEXTCOLOR, WHITE,
+                                         WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 200)
+        self.buttons['3x3_sel'].action = self.set_board_size_to_3x3
 
         self.buttons['5x5'] = Button('5x5',
                                      TEXTCOLOR, TILECOLOR,
                                      WINDOWWIDTH / 2, WINDOWHEIGHT - 200)
         self.buttons['5x5'].action = self.set_board_size_to_5x5
-        self.buttons['5x5_selected'] = Button('5x5',
-                                              TEXTCOLOR, WHITE,
-                                              WINDOWWIDTH / 2, WINDOWHEIGHT - 200)
-        self.buttons['5x5_selected'].action = self.set_board_size_to_5x5
+        self.buttons['5x5_sel'] = Button('5x5',
+                                         TEXTCOLOR, WHITE,
+                                         WINDOWWIDTH / 2, WINDOWHEIGHT - 200)
+        self.buttons['5x5_sel'].action = self.set_board_size_to_5x5
 
         self.buttons['7x7'] = Button('7x7',
                                      TEXTCOLOR, TILECOLOR,
                                      WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 200)
         self.buttons['7x7'].action = self.set_board_size_to_7x7
-        self.buttons['7x7_selected'] = Button('7x7',
-                                              TEXTCOLOR, WHITE,
-                                              WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 200)
-        self.buttons['7x7_selected'].action = self.set_board_size_to_7x7
+        self.buttons['7x7_sel'] = Button('7x7',
+                                         TEXTCOLOR, WHITE,
+                                         WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 200)
+        self.buttons['7x7_sel'].action = self.set_board_size_to_7x7
 
         while self.loop_stage:
             # Get events
@@ -169,15 +198,26 @@ class Game(object):
         txt = 'Chose board size:'
         surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 870, WINDOWHEIGHT - 240)
         self.window.blit(surf, rect)
+        txt = 'Chose difficulty:'
+        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 870, WINDOWHEIGHT - 340)
+        self.window.blit(surf, rect)
 
         # Draw the buttons
         for button_name in self.buttons:
             button = self.buttons[button_name]
-            if self.board_size == 3 and button_name in ['3x3', '5x5_selected', '7x7_selected']:
+            # Size pressed
+            if self.board_size == 3 and button_name in ['3x3', '5x5_sel', '7x7_sel']:
                 continue
-            elif self.board_size == 5 and button_name in ['3x3_selected', '5x5', '7x7_selected']:
+            elif self.board_size == 5 and button_name in ['3x3_sel', '5x5', '7x7_sel']:
                 continue
-            elif self.board_size == 7 and button_name in ['3x3_selected', '5x5_selected', '7x7']:
+            elif self.board_size == 7 and button_name in ['3x3_sel', '5x5_sel', '7x7']:
+                continue
+            # Limit button pressed
+            elif self.limit == 3 and button_name in ['limit3', 'limit5_sel', 'limit7_sel']:
+                continue
+            elif self.limit == 5 and button_name in ['limit3_sel', 'limit5', 'limit7_sel']:
+                continue
+            elif self.limit == 7 and button_name in ['limit3_sel', 'limit5_sel', 'limit7']:
                 continue
             else:
                 self.window.blit(button.surface, button.rect)
@@ -380,6 +420,18 @@ class Game(object):
         """Set the board size."""
         self.board_size = 7
 
+    def set_limit_to_3(self):
+        """Set the tile limits."""
+        self.limit = 3
+
+    def set_limit_to_5(self):
+        """Set the tile limits."""
+        self.limit = 5
+
+    def set_limit_to_7(self):
+        """Set the tile limits."""
+        self.limit = 7
+
     def check_for_quit(self, events):
         """Check for quit events."""
         for event in events:
@@ -408,7 +460,7 @@ class Game(object):
             target.word_gen()
             word = target.word.lower()
             target.range_gen()
-            limit = 7  # target.upper
+            limit = self.limit
 
             try:
                 if word not in self.board_words.flatten():
