@@ -278,6 +278,8 @@ class Game(object):
                     command = user_input[1:].lower()
                     if command in ['q', 'quit']:
                         self.terminate()
+                    if command == 'add':
+                        self.board_counts += 1
                 else:
                     # DEBUG
                     print(self.board_words)
