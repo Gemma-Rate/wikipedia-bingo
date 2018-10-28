@@ -531,15 +531,17 @@ class Game(object):
         left, top = self.get_tile_courner(tilex, tiley)
         pygame.draw.rect(self.window, bgcolour, (left, top, TILE_WIDTH, TILE_HEIGHT))
 
-        text_surf = BASICFONT.render(str(word), True, txtcolour)
-        text_rect = text_surf.get_rect()
-        text_rect.center = (left + int(TILE_WIDTH / 2), top + int(TILE_HEIGHT / 2))
-        self.window.blit(text_surf, text_rect)
+        surf = BASICFONT.render(str(word), True, txtcolour)
+        rect = surf.get_rect()
+        rect.center = (left + int(TILE_WIDTH / 2), top + int(TILE_HEIGHT / 2))
+        self.window.blit(surf, rect)
 
-        count_surf = BASICFONT.render('{:.0f}/{:.0f}'.format(count, limit), True, txtcolour)
-        count_rect = count_surf.get_rect()
-        count_rect.center = (left + int(TILE_WIDTH / 2) + 75, top + int(TILE_HEIGHT / 2) + 20)
-        self.window.blit(count_surf, count_rect)
+        txt = '{:.0f}/{:.0f}'.format(count, limit)
+        # txt = '{}{}'.format('-' * int(count), '*' * int(limit - count))
+        surf = BASICFONT.render(txt, True, txtcolour)
+        rect = surf.get_rect()
+        rect.center = (left + int(TILE_WIDTH / 2) + 75, top + int(TILE_HEIGHT / 2) + 20)
+        self.window.blit(surf, rect)
 
     def game_won(self):
         """Determine if anyone has won the game."""
