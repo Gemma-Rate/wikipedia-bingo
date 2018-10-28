@@ -25,7 +25,7 @@ class TargetWord:
     def word_gen(self):
         """Generate word from dictionary"""
 
-        selected_int = rn.randint(0, high=len(self.word_list)+1)
+        selected_int = rn.randint(0, high=len(self.word_list))
         selected_word = self.word_list[selected_int]
 
         self.word = selected_word
