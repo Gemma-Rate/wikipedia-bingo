@@ -356,6 +356,16 @@ class Game(object):
             #    pygame.time.wait(5000)
             #    return
 
+        # Game finished
+        # Update the leaderboard.
+        name = 'tst'  # Put input from user here!
+        new_win = pd.DataFrame(columns=['score', 'name'])
+        new_win.loc[0] = [self.score, name]
+        leaderboard = pd.read_csv('leaderboard.csv')
+        new_leaderboard = pd.concat([leaderboard, new_win])
+        new_leaderboard = new_leaderboard.sort_values('score')
+        new_leaderboard.to_csv('leaderboard.csv', index=False)
+
     def draw_main_screen(self):
         """Draw the main screen."""
         self.window.fill(BGCOLOR)
@@ -384,16 +394,7 @@ class Game(object):
 
         # Draw the winning message if you've won
         if self.game_won():
-
-            name = 'tst' # Put input from user here!
-            new_win = pd.DataFrame(columns=['score', 'name'])
-            new_win.loc[0] = [self.score, name]
-            leaderboard = pd.read_csv('leaderboard.csv')
-            new_leaderboard = pd.concat([leaderboard, new_win])
-            new_leaderboard = new_leaderboard.sort_values('score')
-            new_leaderboard.to_csv('leaderboard.csv', index=False)
-            # Update the leaderboard.
-
+            # Display winning message
             textSurf, textRect = make_text('!! WINNER !!',
                                            MESSAGECOLOR, BGCOLOR,
                                            WINDOWWIDTH / 2 - 75, 5)
