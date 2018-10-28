@@ -4,7 +4,7 @@ import sys
 from collections import Counter
 
 import numpy as np
-
+import pandas as pd
 
 import pygame
 import pygame.locals as loc
@@ -17,8 +17,8 @@ from word_generation import TargetWord, get_word_list
 
 
 # Create the constants (go ahead and experiment with different values)
-BOARDWIDTH = 5  # number of columns in the board
-BOARDHEIGHT = 5  # number of rows in the board
+BOARDWIDTH = 3  # number of columns in the board
+BOARDHEIGHT = 3  # number of rows in the board
 TILESIZE = 80
 TILE_WIDTH = 200
 TILE_HEIGHT = 80
@@ -91,6 +91,9 @@ class Game():
         # Create the message array (starts blank)
         self.message_array = None
 
+        # Initial score.
+        self.score = 0
+
     def run(self):
         """Run the game until it quits."""
 
@@ -129,9 +132,13 @@ class Game():
                         validation.scrape_wiki()
                         validation.process_wiki()
                         words = validation.token
+                        self.score += 1
+                        print(self.score)
                     except Exception:
                         print('Article not found')
                         words = []
+                        self.score += 1
+                        print(self.score)
 
                     # Remove any words not on the board
                     words = [word.lower()
@@ -258,6 +265,16 @@ class Game():
 
         # Draw the winning message if you've won
         if self.game_won():
+
+            name = 'tst' # Put input from user here!
+            new_win = pd.DataFrame(columns=['score', 'name'])
+            new_win.loc[0] = [self.score, name]
+            leaderboard = pd.read_csv('leaderboard.csv')
+            new_leaderboard = pd.concat([leaderboard, new_win])
+            new_leaderboard = new_leaderboard.sort_values('score')
+            new_leaderboard.to_csv('leaderboard.csv', index=False)
+            # Update the leaderboard.
+
             textSurf, textRect = make_text('!! WINNER !!',
                                            MESSAGECOLOR, BGCOLOR,
                                            WINDOWWIDTH - 650, 5)
