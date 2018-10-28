@@ -1,4 +1,4 @@
-"""Wikipedia Bingo code"""
+"""Wikipedia Bingo code."""
 
 import sys
 from collections import Counter
@@ -50,20 +50,23 @@ ALL_WORDS = get_word_list('no_stop_g2.txt')
 
 
 def make_text(text, color, bgcolor, top, left):
-    # create the Surface and Rect objects for some text.
+    """Create the Surface and Rect objects for some text."""
     surface = BASICFONT.render(text, True, color, bgcolor)
     rect = surface.get_rect()
     rect.topleft = (top, left)
     return (surface, rect)
 
 
-class Button():
+class Button(object):
+    """A button object."""
+
     def __init__(self, text, text_color, back_color, x, y):
         self.surface, self.rect = make_text(text, text_color, back_color, x, y)
 
 
-class Game():
-    """The class to hold the game instance."""
+class Game(object):
+    """The game instance."""
+
     def __init__(self):
         # Create the clock
         self.clock = pygame.time.Clock()
@@ -88,7 +91,7 @@ class Game():
         self.terminate()
 
     def start_screen(self):
-        """Main game loop."""
+        """Create the start screen."""
         self.loop_stage = True
 
         # Define buttons
@@ -126,6 +129,7 @@ class Game():
             self.clock.tick(FPS)
 
     def draw_start_screen(self):
+        """Draw the start screen."""
         self.window.fill(BGCOLOR)
         # Draw the name
         instruct = 'Wikipedia Bingo (not affiliated with WikiBingo)'
@@ -143,7 +147,7 @@ class Game():
         pygame.display.update()
 
     def main_screen(self):
-        """Main game loop."""
+        """Create the main screen."""
         self.loop_stage = True
 
         # Generate a new puzzle
@@ -265,6 +269,7 @@ class Game():
                 return
 
     def draw_main_screen(self):
+        """Draw the main screen."""
         self.window.fill(BGCOLOR)
         # Draw the board
         for tilex in range(len(self.board_words)):
@@ -315,13 +320,16 @@ class Game():
         pygame.display.update()
 
     def next_stage(self):
+        """Go to the next stage."""
         self.loop_stage = False
 
     def terminate(self):
+        """Quit the game."""
         pygame.quit()
         sys.exit()
 
     def check_for_quit(self, events):
+        """Check for quit events."""
         for event in events:
             if event.type == loc.QUIT:
                 # terminate if any QUIT events are present
@@ -334,7 +342,7 @@ class Game():
         """Return a board data structure with tiles in the solved state."""
         words = []
         ranges = []
-        for i in range(BOARDSIZE * BOARDSIZE):
+        for _ in range(BOARDSIZE * BOARDSIZE):
             word, limit = self.get_new_word()
             words.append(word)
             ranges.append(limit)
@@ -358,26 +366,26 @@ class Game():
 
         return word, limit
 
-    def get_tile_courner(self, tileX, tileY):
-        left = XMARGIN + (tileX * TILE_WIDTH) + (tileX - 1)
-        top = YMARGIN + (tileY * TILE_HEIGHT) + (tileY - 1)
+    def get_tile_courner(self, tilex, tiley):
+        """Get the coordinates of the top left courner of a tile."""
+        left = XMARGIN + (tilex * TILE_WIDTH) + (tilex - 1)
+        top = YMARGIN + (tiley * TILE_HEIGHT) + (tiley - 1)
         return (left, top)
 
     def draw_tile(self, tilex, tiley, word, count, limit, colour=TILECOLOR):
-        """draw a tile at board coordinates tilex and tiley, optionally a few
-        pixels over (determined by adjx and adjy)"""
+        """Draw a tile at board coordinates tilex and tiley."""
         left, top = self.get_tile_courner(tilex, tiley)
         pygame.draw.rect(self.window, colour, (left, top, TILE_WIDTH, TILE_HEIGHT))
 
-        textSurf = BASICFONT.render(str(word), True, TEXTCOLOR)
-        textRect = textSurf.get_rect()
-        textRect.center = (left + int(TILE_WIDTH / 2), top + int(TILE_HEIGHT / 2))
-        self.window.blit(textSurf, textRect)
+        text_surf = BASICFONT.render(str(word), True, TEXTCOLOR)
+        text_rect = text_surf.get_rect()
+        text_rect.center = (left + int(TILE_WIDTH / 2), top + int(TILE_HEIGHT / 2))
+        self.window.blit(text_surf, text_rect)
 
-        countSurf = BASICFONT.render('{:.0f}/{:.0f}'.format(count, limit), True, TEXTCOLOR)
-        countRect = countSurf.get_rect()
-        countRect.center = (left + int(TILE_WIDTH / 2) + 75, top + int(TILE_HEIGHT / 2) + 20)
-        self.window.blit(countSurf, countRect)
+        count_surf = BASICFONT.render('{:.0f}/{:.0f}'.format(count, limit), True, TEXTCOLOR)
+        count_rect = count_surf.get_rect()
+        count_rect.center = (left + int(TILE_WIDTH / 2) + 75, top + int(TILE_HEIGHT / 2) + 20)
+        self.window.blit(count_surf, count_rect)
 
     def game_won(self):
         """Determine if anyone has won the game."""
@@ -397,7 +405,7 @@ class Game():
 
 
 def main():
-    """The main process."""
+    """Run the main process."""
     # Initilise PyGame
     pygame.init()
 
