@@ -237,6 +237,7 @@ class Game(object):
 
         # Create list of red tiles
         self.board_counts = np.zeros((self.board_size, self.board_size))
+        self.board_new = np.zeros((self.board_size, self.board_size))
 
         # Quit button
         self.buttons = {}
@@ -291,6 +292,9 @@ class Game(object):
                     self.message_array = [user_input + ':']
 
                     if not self.game_won():
+                        # Reset the new word counter
+                        self.board_new = np.zeros((self.board_size, self.board_size))
+
                         # Get the wikipedia article
                         validation = Validation(user_input)
                         try:
@@ -307,8 +311,8 @@ class Game(object):
 
                         # Remove any words not on the board
                         words = [word.lower()
-                                for word in words
-                                if word.lower() in self.board_words.flatten()]
+                                 for word in words
+                                 if word.lower() in self.board_words.flatten()]
 
                         # Count the frequencies
                         counter = Counter(words)
@@ -325,10 +329,10 @@ class Game(object):
 
                             # Create the message array for the left hand courner
                             message = '{} ({:.0f})+{:.0f} = {:.0f}/{:.0f}'.format(word,
-                                                                                current_count,
-                                                                                counter[word],
-                                                                                new_count,
-                                                                                limit)
+                                                                                  current_count,
+                                                                                  counter[word],
+                                                                                  new_count,
+                                                                                  limit)
                             self.message_array.append(message)
 
                             # Check if the counter has overflowed
@@ -345,6 +349,7 @@ class Game(object):
                                 print(new_word)
                                 self.board_words[x][y] = new_word
                                 self.board_limits[x][y] = new_range
+                                self.board_new[x][y] = 1
                     else:
                         # You win!
                         if not self.name and len(user_input) > 0:
@@ -377,13 +382,22 @@ class Game(object):
         for tilex in range(len(self.board_words)):
             for tiley in range(len(self.board_words[0])):
                 word = self.board_words[tilex][tiley]
+
+                # Change the BG colour based on the count
                 count = self.board_counts[tilex][tiley]
                 limit = self.board_limits[tilex][tiley]
                 if 0 < count < limit:
-                    colour = (255, 255 - count * 255 / limit, 255 - count * 255 / limit)
+                    bgcolour = (255, 255 - count * 255 / limit, 255 - count * 255 / limit)
                 else:
-                    colour = GREEN
-                self.draw_tile(tilex, tiley, word, count, limit, colour)
+                    bgcolour = GREEN
+
+                # Change the text colour if it's new
+                new = self.board_new[tilex][tiley]
+                if new:
+                    bgcolour = (50, 150, 80)
+
+                # Draw the tile
+                self.draw_tile(tilex, tiley, word, count, limit, TEXTCOLOR, bgcolour)
 
         left, top = self.get_tile_courner(0, 0)
         width = self.board_size * TILE_WIDTH
@@ -512,17 +526,17 @@ class Game(object):
         top = ymargin + (tiley * TILE_HEIGHT) + (tiley - 1)
         return (left, top)
 
-    def draw_tile(self, tilex, tiley, word, count, limit, colour=TILECOLOR):
+    def draw_tile(self, tilex, tiley, word, count, limit, txtcolour=TEXTCOLOR, bgcolour=TILECOLOR):
         """Draw a tile at board coordinates tilex and tiley."""
         left, top = self.get_tile_courner(tilex, tiley)
-        pygame.draw.rect(self.window, colour, (left, top, TILE_WIDTH, TILE_HEIGHT))
+        pygame.draw.rect(self.window, bgcolour, (left, top, TILE_WIDTH, TILE_HEIGHT))
 
-        text_surf = BASICFONT.render(str(word), True, TEXTCOLOR)
+        text_surf = BASICFONT.render(str(word), True, txtcolour)
         text_rect = text_surf.get_rect()
         text_rect.center = (left + int(TILE_WIDTH / 2), top + int(TILE_HEIGHT / 2))
         self.window.blit(text_surf, text_rect)
 
-        count_surf = BASICFONT.render('{:.0f}/{:.0f}'.format(count, limit), True, TEXTCOLOR)
+        count_surf = BASICFONT.render('{:.0f}/{:.0f}'.format(count, limit), True, txtcolour)
         count_rect = count_surf.get_rect()
         count_rect.center = (left + int(TILE_WIDTH / 2) + 75, top + int(TILE_HEIGHT / 2) + 20)
         self.window.blit(count_surf, count_rect)
