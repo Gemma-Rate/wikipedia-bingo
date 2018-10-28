@@ -322,15 +322,18 @@ class Game(object):
                     # DEBUG
                     print(self.board_words)
 
+                    # Get the article title
+                    title = user_input.lower()
+
                     # Put the title in the top left
-                    self.message_array = [user_input + ':']
+                    self.message_array = [title + ':']
 
                     if not self.game_won():
                         # Reset the new word counter
                         self.board_new = np.zeros((self.board_size, self.board_size))
 
                         # Get the wikipedia article
-                        validation = Validation(user_input)
+                        validation = Validation(title)
                         try:
                             validation.scrape_wiki()
                             validation.process_wiki()
