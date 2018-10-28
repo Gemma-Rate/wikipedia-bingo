@@ -222,14 +222,14 @@ class Game(object):
             else:
                 self.window.blit(button.surface, button.rect)
 
-        data, testnames = np.array([1,2, 3]), ['jam', 'lia', 'rob']
+        data, testnames = np.array([1, 2, 3]), ['jam', 'lia', 'rob']
         self.scoreboard = pd.DataFrame({'score': data, 'name': testnames})
 
         if all(self.scoreboard.index):
             strings = self.scoreboard['name'].values
             scores = self.scoreboard['score'].values
             for i, (na, sc) in enumerate(zip(strings, scores)):
-                msg = na+str(sc)
+                msg = na + str(sc)
                 print(msg)
                 textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5 + 20 * i)
                 self.window.blit(textSurf, textRect)
@@ -364,16 +364,15 @@ class Game(object):
                                 self.board_new[x][y] = 1
                     else:
                         # You win!
+                        self.scoring_algorithm()
+
                         if not self.name and len(user_input) > 0:
                             self.name = user_input
-                            print(self.name)
 
                             # Update the leaderboard.
-                            name = 'tst'  # Put input from user here!
                             new_win = pd.DataFrame(columns=['score', 'name'])
 
-                            self.scoring_algorithm()
-                            new_win.loc[0] = [self.final_score, name]
+                            new_win.loc[0] = [self.final_score, self.name]
                             leaderboard = pd.read_csv('leaderboard.csv')
                             new_leaderboard = pd.concat([leaderboard, new_win])
                             new_leaderboard = new_leaderboard.sort_values('score', ascending=False)
@@ -419,8 +418,8 @@ class Game(object):
         height = self.board_size * TILE_HEIGHT
         pygame.draw.rect(self.window, BORDERCOLOR, (left - 5, top - 5, width + 11, height + 11), 4)
 
-        # Draw the score
-        msg = 'SCORE: {:.0f}'.format(self.score)
+        # Draw the count
+        msg = 'COUNT: {:.0f}'.format(self.score)
         surf, rect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5)
         self.window.blit(surf, rect)
 
@@ -436,6 +435,13 @@ class Game(object):
             textSurf, textRect = make_text('!! WINNER !!',
                                            MESSAGECOLOR, BGCOLOR,
                                            WINDOWWIDTH / 2 - 75, 5)
+            self.window.blit(textSurf, textRect)
+
+            # Display score
+            self.scoring_algorithm()
+            textSurf, textRect = make_text('FINAL SCORE: {:.0f}'.format(self.final_score),
+                                           MESSAGECOLOR, BGCOLOR,
+                                           WINDOWWIDTH / 2 - 120, 25)
             self.window.blit(textSurf, textRect)
 
         # Draw the instructions
@@ -603,7 +609,7 @@ class Game(object):
         elif self.limit == 7:
             self.final_score += 8000
 
-        self.final_score = int(self.final_score / self.score)
+        self.final_score = int(self.final_score / (self.score + 1))
 
 
 def main():
