@@ -229,6 +229,9 @@ class Game(object):
         """Create the main screen."""
         self.loop_stage = True
 
+        # Default user name
+        self.name = None
+
         # Generate a new puzzle
         self.get_starting_board()
 
@@ -287,60 +290,76 @@ class Game(object):
                     # Put the title in the top left
                     self.message_array = [user_input + ':']
 
-                    # Get the wikipedia article
-                    validation = Validation(user_input)
-                    try:
-                        validation.scrape_wiki()
-                        validation.process_wiki()
-                        words = validation.token
-                        self.score += 1
-                        print(self.score)
-                    except Exception:
-                        self.message_array.append('Article not found')
-                        words = []
-                        self.score += 1
-                        print(self.score)
+                    if not self.game_won():
+                        # Get the wikipedia article
+                        validation = Validation(user_input)
+                        try:
+                            validation.scrape_wiki()
+                            validation.process_wiki()
+                            words = validation.token
+                            self.score += 1
+                            print(self.score)
+                        except Exception:
+                            self.message_array.append('Article not found')
+                            words = []
+                            self.score += 1
+                            print(self.score)
 
-                    # Remove any words not on the board
-                    words = [word.lower()
-                             for word in words
-                             if word.lower() in self.board_words.flatten()]
+                        # Remove any words not on the board
+                        words = [word.lower()
+                                for word in words
+                                if word.lower() in self.board_words.flatten()]
 
-                    # Count the frequencies
-                    counter = Counter(words)
+                        # Count the frequencies
+                        counter = Counter(words)
 
-                    # Create the message for the top left
-                    if len(words) == 0:
-                        self.message_array.append('No valid words')
+                        # Create the message for the top left
+                        if len(words) == 0:
+                            self.message_array.append('No valid words')
 
-                    for word in sorted(counter, key=lambda x: counter[x], reverse=True):
-                        x, y = tuple(np.argwhere(self.board_words == word.lower())[0])
-                        current_count = self.board_counts[x][y]
-                        limit = self.board_limits[x][y]
-                        new_count = current_count + counter[word]
+                        for word in sorted(counter, key=lambda x: counter[x], reverse=True):
+                            x, y = tuple(np.argwhere(self.board_words == word.lower())[0])
+                            current_count = self.board_counts[x][y]
+                            limit = self.board_limits[x][y]
+                            new_count = current_count + counter[word]
 
-                        # Create the message array for the left hand courner
-                        message = '{} ({:.0f})+{:.0f} = {:.0f}/{:.0f}'.format(word,
-                                                                              current_count,
-                                                                              counter[word],
-                                                                              new_count,
-                                                                              limit)
-                        self.message_array.append(message)
+                            # Create the message array for the left hand courner
+                            message = '{} ({:.0f})+{:.0f} = {:.0f}/{:.0f}'.format(word,
+                                                                                current_count,
+                                                                                counter[word],
+                                                                                new_count,
+                                                                                limit)
+                            self.message_array.append(message)
 
-                        # Check if the counter has overflowed
-                        new_word = None
-                        new_range = None
-                        if new_count >= limit:
-                            new_count = 0
-                            new_word, new_range = self.get_new_word()
-                            self.message_array.append('  OVERFLOW > {}'.format(new_word))
+                            # Check if the counter has overflowed
+                            new_word = None
+                            new_range = None
+                            if new_count >= limit:
+                                new_count = 0
+                                new_word, new_range = self.get_new_word()
+                                self.message_array.append('  OVERFLOW > {}'.format(new_word))
 
-                        # Save the new count, new word (if needed) and message
-                        self.board_counts[x][y] = new_count
-                        if new_word:
-                            print(new_word)
-                            self.board_words[x][y] = new_word
-                            self.board_limits[x][y] = new_range
+                            # Save the new count, new word (if needed) and message
+                            self.board_counts[x][y] = new_count
+                            if new_word:
+                                print(new_word)
+                                self.board_words[x][y] = new_word
+                                self.board_limits[x][y] = new_range
+                    else:
+                        # You win!
+                        if not self.name and len(user_input) > 0:
+                            self.name = user_input
+                            print(self.name)
+
+                            # Update the leaderboard.
+                            new_win = pd.DataFrame(columns=['score', 'name'])
+                            new_win.loc[0] = [self.score, self.name]
+                            leaderboard = pd.read_csv('leaderboard.csv')
+                            new_leaderboard = pd.concat([leaderboard, new_win])
+                            new_leaderboard = new_leaderboard.sort_values('score')
+                            new_leaderboard.to_csv('leaderboard.csv', index=False)
+
+                            return
 
             # Check for exit
             self.check_for_quit(events)
@@ -350,21 +369,6 @@ class Game(object):
 
             # Tick the FPS clock
             self.clock.tick(FPS)
-
-            # Exit if won
-            #if self.game_won():
-            #    pygame.time.wait(5000)
-            #    return
-
-        # Game finished
-        # Update the leaderboard.
-        name = 'tst'  # Put input from user here!
-        new_win = pd.DataFrame(columns=['score', 'name'])
-        new_win.loc[0] = [self.score, name]
-        leaderboard = pd.read_csv('leaderboard.csv')
-        new_leaderboard = pd.concat([leaderboard, new_win])
-        new_leaderboard = new_leaderboard.sort_values('score')
-        new_leaderboard.to_csv('leaderboard.csv', index=False)
 
     def draw_main_screen(self):
         """Draw the main screen."""
@@ -401,9 +405,16 @@ class Game(object):
             self.window.blit(textSurf, textRect)
 
         # Draw the instructions
-        instruct = 'Enter the name of a Wikipedia article:'
+        if not self.game_won():
+            instruct = 'Enter the name of a Wikipedia article:'
+            color = MESSAGECOLOR
+            bgcolor = BGCOLOR
+        else:
+            instruct = 'Enter your name to add to the leaderboard:'
+            color = WHITE
+            bgcolor = (255, 0, 0)
         instructSurf, instructRect = make_text(instruct,
-                                               MESSAGECOLOR, BGCOLOR,
+                                               color, bgcolor,
                                                5, WINDOWHEIGHT - 60)
         self.window.blit(instructSurf, instructRect)
 
