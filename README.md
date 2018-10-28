@@ -1,7 +1,21 @@
-# Welcome to Wikipedia Bingo
-
-
+# Wikipedia Bingo
 ### *The excitement of Wikipedia and the trepidations of Bingo combined into one game!*
+
+Wikipedia Bingo was created for HackSheffield 2018, see https://devpost.com/software/wikipedia-bingo for more.
+
+### Installation
+
+You will need Python installed on your PC.
+
+Download the Git repository [from this link](https://github.com/Gemma-Rate/wikipedia-bingo/archive/master.zip) and extract it.
+
+You'll need certain Python modules installed, listed in `requirements.txt`. If you have pip installed you can run:
+```
+pip install -r requirements.txt
+```
+
+Once thet is done open a terminal and run `python game.py`.
+
 
 ### Goal 
 Find all the words in a column or a row to get Bingo! and win the game!
