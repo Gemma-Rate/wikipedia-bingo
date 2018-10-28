@@ -100,68 +100,68 @@ class Game(object):
         # Options
         self.buttons['start'] = Button('START',
                                        TEXTCOLOR, TILECOLOR,
-                                       WINDOWWIDTH / 2 - 100, WINDOWHEIGHT - 100)
+                                       WINDOWWIDTH / 2 - 125, WINDOWHEIGHT - 100)
         self.buttons['start'].action = self.next_stage
 
         self.buttons['quit'] = Button('QUIT',
                                       TEXTCOLOR, TILECOLOR,
-                                      WINDOWWIDTH / 2 + 50, WINDOWHEIGHT - 100)
+                                      WINDOWWIDTH / 2 + 25, WINDOWHEIGHT - 100)
         self.buttons['quit'].action = self.terminate
 
         # Difficulty
         self.buttons['limit3'] = Button('Hard',
                                         TEXTCOLOR, TILECOLOR,
-                                        WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 300)
+                                        WINDOWWIDTH / 2 + 100, 300)
         self.buttons['limit3'].action = self.set_limit_to_3
         self.buttons['limit3_sel'] = Button('Hard',
                                             TEXTCOLOR, WHITE,
-                                            WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 300)
+                                            WINDOWWIDTH / 2 + 100, 300)
         self.buttons['limit3_sel'].action = self.set_limit_to_3
 
         self.buttons['limit5'] = Button('Medium',
                                         TEXTCOLOR, TILECOLOR,
-                                        WINDOWWIDTH / 2, WINDOWHEIGHT - 300)
+                                        WINDOWWIDTH / 2 - 50, 300)
         self.buttons['limit5'].action = self.set_limit_to_5
         self.buttons['limit5_sel'] = Button('Medium',
                                             TEXTCOLOR, WHITE,
-                                            WINDOWWIDTH / 2, WINDOWHEIGHT - 300)
+                                            WINDOWWIDTH / 2 - 50, 300)
         self.buttons['limit5_sel'].action = self.set_limit_to_5
 
         self.buttons['limit7'] = Button('Easy',
                                         TEXTCOLOR, TILECOLOR,
-                                        WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 300)
+                                        WINDOWWIDTH / 2 - 200, 300)
         self.buttons['limit7'].action = self.set_limit_to_7
         self.buttons['limit7_sel'] = Button('Easy',
                                             TEXTCOLOR, WHITE,
-                                            WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 300)
+                                            WINDOWWIDTH / 2 - 200, 300)
         self.buttons['limit7_sel'].action = self.set_limit_to_7
 
         # Board size
         self.buttons['3x3'] = Button('3x3',
                                      TEXTCOLOR, TILECOLOR,
-                                     WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 200)
+                                     WINDOWWIDTH / 2 - 200, 450)
         self.buttons['3x3'].action = self.set_board_size_to_3x3
         self.buttons['3x3_sel'] = Button('3x3',
                                          TEXTCOLOR, WHITE,
-                                         WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 200)
+                                         WINDOWWIDTH / 2 - 200, 450)
         self.buttons['3x3_sel'].action = self.set_board_size_to_3x3
 
         self.buttons['5x5'] = Button('5x5',
                                      TEXTCOLOR, TILECOLOR,
-                                     WINDOWWIDTH / 2, WINDOWHEIGHT - 200)
+                                     WINDOWWIDTH / 2 - 50, 450)
         self.buttons['5x5'].action = self.set_board_size_to_5x5
         self.buttons['5x5_sel'] = Button('5x5',
                                          TEXTCOLOR, WHITE,
-                                         WINDOWWIDTH / 2, WINDOWHEIGHT - 200)
+                                         WINDOWWIDTH / 2 - 50, 450)
         self.buttons['5x5_sel'].action = self.set_board_size_to_5x5
 
         self.buttons['7x7'] = Button('7x7',
                                      TEXTCOLOR, TILECOLOR,
-                                     WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 200)
+                                     WINDOWWIDTH / 2 + 100, 450)
         self.buttons['7x7'].action = self.set_board_size_to_7x7
         self.buttons['7x7_sel'] = Button('7x7',
                                          TEXTCOLOR, WHITE,
-                                         WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 200)
+                                         WINDOWWIDTH / 2 + 100, 450)
         self.buttons['7x7_sel'].action = self.set_board_size_to_7x7
 
         while self.loop_stage:
@@ -191,18 +191,30 @@ class Game(object):
         self.window.fill(BGCOLOR)
         # Draw the name
         txt = 'Wikipedia Bingo!'
-        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 500, 60)
+        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 855, 60)
         self.window.blit(surf, rect)
 
-        # Draw the button text
-        txt = 'Chose board size:'
-        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 870, WINDOWHEIGHT - 240)
+        # Draw the instructions
+        txt = 'INSTRUCTIONS'
+        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 100, 200)
         self.window.blit(surf, rect)
-        txt = 'Chose difficulty:'
-        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 870, WINDOWHEIGHT - 340)
-        self.window.blit(surf, rect)
+        with open('instructions.txt') as f:
+            text = f.read().split('\n')
+        for i, line in enumerate(text):
+            textSurf, textRect = make_text(line, MESSAGECOLOR, BGCOLOR, 100, 230 + 20 * i)
+            self.window.blit(textSurf, textRect)
 
         # Draw the buttons
+        txt = 'OPTIONS'
+        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 890, 200)
+        self.window.blit(surf, rect)
+
+        txt = 'Chose difficulty:'
+        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 850, 250)
+        self.window.blit(surf, rect)
+        txt = 'Chose board size:'
+        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 850, 400)
+        self.window.blit(surf, rect)
         for button_name in self.buttons:
             button = self.buttons[button_name]
             # Size pressed
@@ -222,17 +234,21 @@ class Game(object):
             else:
                 self.window.blit(button.surface, button.rect)
 
-        data, testnames = np.array([1, 2, 3]), ['jam', 'lia', 'rob']
-        self.scoreboard = pd.DataFrame({'score': data, 'name': testnames})
+        # Draw the leaderboard
+        txt = 'HIGH SCORES'
+        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 1500, 200)
+        self.window.blit(surf, rect)
 
-        if all(self.scoreboard.index):
-            strings = self.scoreboard['name'].values
-            scores = self.scoreboard['score'].values
-            for i, (na, sc) in enumerate(zip(strings, scores)):
-                msg = na + str(sc)
-                print(msg)
-                textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 5, 5 + 20 * i)
-                self.window.blit(textSurf, textRect)
+        scoreboard = pd.read_csv('leaderboard.csv')
+        strings = scoreboard['name'].values
+        scores = scoreboard['score'].values
+        for i, (name, score) in enumerate(zip(strings[:10], scores[:10])):
+            msg = '{: >5.0f}'.format(score)
+            textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 1500, 250 + 20 * i)
+            self.window.blit(textSurf, textRect)
+            msg = '{}'.format(name[:3].upper())
+            textSurf, textRect = make_text(msg, MESSAGECOLOR, BGCOLOR, 1600, 250 + 20 * i)
+            self.window.blit(textSurf, textRect)
 
         # Update the dipslay
         pygame.display.update()
