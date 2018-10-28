@@ -70,7 +70,7 @@ class Game(object):
 
         # Create the game window
         self.window = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-        pygame.display.set_caption('Unnamed Wiki Bingo game (not WikiBingo)')
+        pygame.display.set_caption('Wikipedia Bingo')
 
         # Default game options (changed on start screen)
         self.limit = 5
@@ -190,7 +190,7 @@ class Game(object):
         """Draw the start screen."""
         self.window.fill(BGCOLOR)
         # Draw the name
-        txt = 'Wikipedia Bingo (not affiliated with WikiBingo)'
+        txt = 'Wikipedia Bingo!'
         surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 500, 60)
         self.window.blit(surf, rect)
 
