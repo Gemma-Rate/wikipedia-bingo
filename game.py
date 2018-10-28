@@ -343,9 +343,9 @@ class Game(object):
             self.clock.tick(FPS)
 
             # Exit if won
-            if self.game_won():
-                pygame.time.wait(5000)
-                return
+            #if self.game_won():
+            #    pygame.time.wait(5000)
+            #    return
 
     def draw_main_screen(self):
         """Draw the main screen."""
