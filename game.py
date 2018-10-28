@@ -251,9 +251,6 @@ class Game(object):
         # Initial score.
         self.score = 0
 
-    def run(self):
-        """Run the game until it quits."""
-
         # Draw the initial board
         self.draw_main_screen()
 
