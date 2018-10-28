@@ -17,7 +17,7 @@ from word_generation import TargetWord, get_word_list
 
 
 # Create the constants (go ahead and experiment with different values)
-BOARDSIZE = 1
+BOARDSIZE = 5
 TILESIZE = 80
 TILE_WIDTH = 200
 TILE_HEIGHT = 80
@@ -42,9 +42,6 @@ MESSAGECOLOR = BLACK
 
 BASICFONTSIZE = 20
 BASICFONT = pygame.font.Font('freesansbold.ttf', BASICFONTSIZE)
-
-XMARGIN = int((WINDOWWIDTH - (TILE_WIDTH * BOARDSIZE + (BOARDSIZE - 1))) / 2)
-YMARGIN = int((WINDOWHEIGHT - (TILE_HEIGHT * BOARDSIZE + (BOARDSIZE - 1))) / 2)
 
 ALL_WORDS = get_word_list('no_stop_g2.txt')
 
@@ -75,6 +72,9 @@ class Game(object):
         self.window = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
         pygame.display.set_caption('Unnamed Wiki Bingo game (not WikiBingo)')
 
+        # Default game options (changed on start screen)
+        self.board_size = 5
+
     def run(self):
         """Run the game until it quits."""
         self.running = True
@@ -96,6 +96,7 @@ class Game(object):
 
         # Define buttons
         self.buttons = {}
+        # Options
         self.buttons['start'] = Button('START',
                                        TEXTCOLOR, TILECOLOR,
                                        WINDOWWIDTH / 2 - 100, WINDOWHEIGHT - 100)
@@ -105,6 +106,34 @@ class Game(object):
                                       TEXTCOLOR, TILECOLOR,
                                       WINDOWWIDTH / 2 + 50, WINDOWHEIGHT - 100)
         self.buttons['quit'].action = self.terminate
+
+        # Dificulty
+        self.buttons['3x3'] = Button('3x3',
+                                     TEXTCOLOR, TILECOLOR,
+                                     WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 200)
+        self.buttons['3x3'].action = self.set_board_size_to_3x3
+        self.buttons['3x3_selected'] = Button('3x3',
+                                              TEXTCOLOR, WHITE,
+                                              WINDOWWIDTH / 2 - 150, WINDOWHEIGHT - 200)
+        self.buttons['3x3_selected'].action = self.set_board_size_to_3x3
+
+        self.buttons['5x5'] = Button('5x5',
+                                     TEXTCOLOR, TILECOLOR,
+                                     WINDOWWIDTH / 2, WINDOWHEIGHT - 200)
+        self.buttons['5x5'].action = self.set_board_size_to_5x5
+        self.buttons['5x5_selected'] = Button('5x5',
+                                              TEXTCOLOR, WHITE,
+                                              WINDOWWIDTH / 2, WINDOWHEIGHT - 200)
+        self.buttons['5x5_selected'].action = self.set_board_size_to_5x5
+
+        self.buttons['7x7'] = Button('7x7',
+                                     TEXTCOLOR, TILECOLOR,
+                                     WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 200)
+        self.buttons['7x7'].action = self.set_board_size_to_7x7
+        self.buttons['7x7_selected'] = Button('7x7',
+                                              TEXTCOLOR, WHITE,
+                                              WINDOWWIDTH / 2 + 150, WINDOWHEIGHT - 200)
+        self.buttons['7x7_selected'].action = self.set_board_size_to_7x7
 
         while self.loop_stage:
             # Get events
@@ -132,16 +161,26 @@ class Game(object):
         """Draw the start screen."""
         self.window.fill(BGCOLOR)
         # Draw the name
-        instruct = 'Wikipedia Bingo (not affiliated with WikiBingo)'
-        instructSurf, instructRect = make_text(instruct,
-                                               MESSAGECOLOR, BGCOLOR,
-                                               500, 60)
-        self.window.blit(instructSurf, instructRect)
+        txt = 'Wikipedia Bingo (not affiliated with WikiBingo)'
+        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 500, 60)
+        self.window.blit(surf, rect)
+
+        # Draw the button text
+        txt = 'Chose board size:'
+        surf, rect = make_text(txt, MESSAGECOLOR, BGCOLOR, 870, WINDOWHEIGHT - 240)
+        self.window.blit(surf, rect)
 
         # Draw the buttons
         for button_name in self.buttons:
             button = self.buttons[button_name]
-            self.window.blit(button.surface, button.rect)
+            if self.board_size == 3 and button_name in ['3x3', '5x5_selected', '7x7_selected']:
+                continue
+            elif self.board_size == 5 and button_name in ['3x3_selected', '5x5', '7x7_selected']:
+                continue
+            elif self.board_size == 7 and button_name in ['3x3_selected', '5x5_selected', '7x7']:
+                continue
+            else:
+                self.window.blit(button.surface, button.rect)
 
         # Update the dipslay
         pygame.display.update()
@@ -154,7 +193,7 @@ class Game(object):
         self.get_starting_board()
 
         # Create list of red tiles
-        self.board_counts = np.zeros((BOARDSIZE, BOARDSIZE))
+        self.board_counts = np.zeros((self.board_size, self.board_size))
 
         # Quit button
         self.buttons = {}
@@ -284,8 +323,8 @@ class Game(object):
                 self.draw_tile(tilex, tiley, word, count, limit, colour)
 
         left, top = self.get_tile_courner(0, 0)
-        width = BOARDSIZE * TILE_WIDTH
-        height = BOARDSIZE * TILE_HEIGHT
+        width = self.board_size * TILE_WIDTH
+        height = self.board_size * TILE_HEIGHT
         pygame.draw.rect(self.window, BORDERCOLOR, (left - 5, top - 5, width + 11, height + 11), 4)
 
         # Draw the message
@@ -319,6 +358,7 @@ class Game(object):
         # Update the dipslay
         pygame.display.update()
 
+    # # # # #  BUTTON FUNCTIONS
     def next_stage(self):
         """Go to the next stage."""
         self.loop_stage = False
@@ -327,6 +367,18 @@ class Game(object):
         """Quit the game."""
         pygame.quit()
         sys.exit()
+
+    def set_board_size_to_3x3(self):
+        """Set the board size."""
+        self.board_size = 3
+
+    def set_board_size_to_5x5(self):
+        """Set the board size."""
+        self.board_size = 5
+
+    def set_board_size_to_7x7(self):
+        """Set the board size."""
+        self.board_size = 7
 
     def check_for_quit(self, events):
         """Check for quit events."""
@@ -342,12 +394,12 @@ class Game(object):
         """Return a board data structure with tiles in the solved state."""
         words = []
         ranges = []
-        for _ in range(BOARDSIZE * BOARDSIZE):
+        for _ in range(self.board_size * self.board_size):
             word, limit = self.get_new_word()
             words.append(word)
             ranges.append(limit)
-        self.board_words = np.array(words, dtype=object).reshape((BOARDSIZE, BOARDSIZE))
-        self.board_limits = np.array(ranges).reshape((BOARDSIZE, BOARDSIZE))
+        self.board_words = np.array(words, dtype=object).reshape((self.board_size, self.board_size))
+        self.board_limits = np.array(ranges).reshape((self.board_size, self.board_size))
 
     def get_new_word(self):
         """Get an unused word from the list of all words."""
@@ -368,8 +420,10 @@ class Game(object):
 
     def get_tile_courner(self, tilex, tiley):
         """Get the coordinates of the top left courner of a tile."""
-        left = XMARGIN + (tilex * TILE_WIDTH) + (tilex - 1)
-        top = YMARGIN + (tiley * TILE_HEIGHT) + (tiley - 1)
+        xmargin = int((WINDOWWIDTH - (TILE_WIDTH * self.board_size + (self.board_size - 1))) / 2)
+        ymargin = int((WINDOWHEIGHT - (TILE_HEIGHT * self.board_size + (self.board_size - 1))) / 2)
+        left = xmargin + (tilex * TILE_WIDTH) + (tilex - 1)
+        top = ymargin + (tiley * TILE_HEIGHT) + (tiley - 1)
         return (left, top)
 
     def draw_tile(self, tilex, tiley, word, count, limit, colour=TILECOLOR):
