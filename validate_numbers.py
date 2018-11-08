@@ -3,6 +3,9 @@ from bs4 import BeautifulSoup as bs
 import re
 import nltk
 
+# Download NLTK package
+nltk.download('punkt')
+
 class Validation:
     """Validate word lengths"""
 
